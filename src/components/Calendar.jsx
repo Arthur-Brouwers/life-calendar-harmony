@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import CalendarEvent from './CalendarEvent';
-import { fetchEvents, addEvent } from '../utils/api';
+import ParticipantSelector from './ParticipantSelector';
+import { fetchEvents, addEvent, checkAvailability } from '../utils/api';
+import { toast } from 'sonner';
 
 const Calendar = () => {
   const [date, setDate] = useState(new Date());
-  const [newEvent, setNewEvent] = useState({ title: '', time: '' });
+  const [newEvent, setNewEvent] = useState({ title: '', time: '', participants: [] });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -22,13 +24,26 @@ const Calendar = () => {
     mutationFn: addEvent,
     onSuccess: () => {
       queryClient.invalidateQueries(['events', date.toISOString().split('T')[0]]);
-      setNewEvent({ title: '', time: '' });
+      setNewEvent({ title: '', time: '', participants: [] });
       setIsDialogOpen(false);
+      toast.success('Event added successfully');
+    },
+    onError: () => {
+      toast.error('Failed to add event');
     },
   });
 
-  const handleAddEvent = () => {
-    addEventMutation.mutate({ ...newEvent, date: date.toISOString().split('T')[0] });
+  const handleAddEvent = async () => {
+    const isAvailable = await checkAvailability(newEvent);
+    if (isAvailable) {
+      addEventMutation.mutate({ ...newEvent, date: date.toISOString().split('T')[0] });
+    } else {
+      toast.error('One or more participants are not available at this time');
+    }
+  };
+
+  const handleParticipantChange = (participants) => {
+    setNewEvent({ ...newEvent, participants });
   };
 
   return (
@@ -58,6 +73,10 @@ const Calendar = () => {
                 type="time"
                 value={newEvent.time}
                 onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+              />
+              <ParticipantSelector
+                selectedParticipants={newEvent.participants}
+                onParticipantChange={handleParticipantChange}
               />
               <Button onClick={handleAddEvent}>Save Event</Button>
             </div>
