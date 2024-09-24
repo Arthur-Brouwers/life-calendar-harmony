@@ -71,7 +71,7 @@ const Calendar = () => {
     if (isAvailable) {
       addEventMutation.mutate({ ...newEvent, date: date.toISOString().split('T')[0] });
     } else {
-      toast.error('The selected time slot is not available');
+      toast.error('The selected time slot is not available. Please choose a different time.');
     }
   };
 

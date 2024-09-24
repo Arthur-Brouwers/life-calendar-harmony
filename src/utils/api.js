@@ -30,17 +30,25 @@ export const removeEvent = async (eventId) => {
   events = events.filter((event) => event.id !== eventId);
 };
 
+const timeToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
 export const checkAvailability = async (newEvent) => {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 500));
   
-  // Check if any participant has a conflicting event
+  const newEventStart = timeToMinutes(newEvent.startTime);
+  const newEventEnd = timeToMinutes(newEvent.endTime);
+
+  // Check if any event conflicts with the new event
   const conflictingEvents = events.filter(
     (event) =>
       event.date === newEvent.date &&
-      ((newEvent.startTime >= event.startTime && newEvent.startTime < event.endTime) ||
-       (newEvent.endTime > event.startTime && newEvent.endTime <= event.endTime) ||
-       (newEvent.startTime <= event.startTime && newEvent.endTime >= event.endTime)) &&
+      ((newEventStart >= timeToMinutes(event.startTime) && newEventStart < timeToMinutes(event.endTime)) ||
+       (newEventEnd > timeToMinutes(event.startTime) && newEventEnd <= timeToMinutes(event.endTime)) ||
+       (newEventStart <= timeToMinutes(event.startTime) && newEventEnd >= timeToMinutes(event.endTime))) &&
       event.participants.some((participant) => newEvent.participants.includes(participant))
   );
 

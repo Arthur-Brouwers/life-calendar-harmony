@@ -22,7 +22,7 @@ const CalendarEvent = ({ event, onRemove }) => {
           <Calendar className="h-4 w-4" />
           <span>{formatDate(event.date)}</span>
         </div>
-        <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+        <div className="flex items-center space-x-2 text-sm font-semibold text-blue-600 mb-2">
           <Clock className="h-4 w-4" />
           <span>{event.startTime} - {event.endTime}</span>
         </div>
