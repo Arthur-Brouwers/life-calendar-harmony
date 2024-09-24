@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Clock } from 'lucide-react';
 
 const CalendarEvent = ({ event, onRemove }) => {
   return (
@@ -13,8 +13,11 @@ const CalendarEvent = ({ event, onRemove }) => {
         </Button>
       </CardHeader>
       <CardContent>
-        <p>Time: {event.time}</p>
-        <p>Participants: {event.participants.join(', ')}</p>
+        <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <Clock className="h-4 w-4" />
+          <span>{event.time}</span>
+        </div>
+        <p className="mt-2">Participants: {event.participants.join(', ')}</p>
       </CardContent>
     </Card>
   );
