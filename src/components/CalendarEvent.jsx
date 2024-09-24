@@ -24,7 +24,7 @@ const CalendarEvent = ({ event, onRemove }) => {
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
           <Clock className="h-4 w-4" />
-          <span>{event.time}</span>
+          <span>{event.startTime} - {event.endTime}</span>
         </div>
         <p className="mt-2">Participants: {event.participants.join(', ')}</p>
       </CardContent>

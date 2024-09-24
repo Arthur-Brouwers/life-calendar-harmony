@@ -11,9 +11,9 @@ import { toast } from 'sonner';
 
 const Calendar = () => {
   const [date, setDate] = useState(new Date());
-  const [newEvent, setNewEvent] = useState({ title: '', time: '', participants: [] });
+  const [newEvent, setNewEvent] = useState({ title: '', startTime: '', endTime: '', participants: [] });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [blockedDates, setBlockedDates] = useState([]);
+  const [blockedTimes, setBlockedTimes] = useState([]);
   const queryClient = useQueryClient();
 
   const { data: events = [] } = useQuery({
@@ -28,8 +28,12 @@ const Calendar = () => {
 
   useEffect(() => {
     if (allEvents.length > 0) {
-      const blocked = allEvents.map(event => new Date(event.date));
-      setBlockedDates(blocked);
+      const blocked = allEvents.map(event => ({
+        date: new Date(event.date),
+        startTime: event.startTime,
+        endTime: event.endTime
+      }));
+      setBlockedTimes(blocked);
     }
   }, [allEvents]);
 
@@ -38,7 +42,7 @@ const Calendar = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['events', date.toISOString().split('T')[0]]);
       queryClient.invalidateQueries(['allEvents']);
-      setNewEvent({ title: '', time: '', participants: [] });
+      setNewEvent({ title: '', startTime: '', endTime: '', participants: [] });
       setIsDialogOpen(false);
       toast.success('Event added successfully');
     },
@@ -60,11 +64,14 @@ const Calendar = () => {
   });
 
   const handleAddEvent = async () => {
-    const isAvailable = await checkAvailability(newEvent);
+    const isAvailable = await checkAvailability({
+      ...newEvent,
+      date: date.toISOString().split('T')[0]
+    });
     if (isAvailable) {
       addEventMutation.mutate({ ...newEvent, date: date.toISOString().split('T')[0] });
     } else {
-      toast.error('One or more participants are not available at this time');
+      toast.error('The selected time slot is not available');
     }
   };
 
@@ -76,9 +83,11 @@ const Calendar = () => {
     setNewEvent({ ...newEvent, participants });
   };
 
-  const isDateDisabled = (date) => {
-    return blockedDates.some(blockedDate => 
-      blockedDate.toDateString() === date.toDateString()
+  const isTimeBlocked = (date, time) => {
+    return blockedTimes.some(blockedTime => 
+      blockedTime.date.toDateString() === date.toDateString() &&
+      time >= blockedTime.startTime &&
+      time < blockedTime.endTime
     );
   };
 
@@ -90,7 +99,6 @@ const Calendar = () => {
           selected={date}
           onSelect={(newDate) => newDate && setDate(newDate)}
           className="rounded-md border"
-          disabled={isDateDisabled}
         />
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -108,8 +116,15 @@ const Calendar = () => {
               />
               <Input
                 type="time"
-                value={newEvent.time}
-                onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                value={newEvent.startTime}
+                onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                placeholder="Start Time"
+              />
+              <Input
+                type="time"
+                value={newEvent.endTime}
+                onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                placeholder="End Time"
               />
               <ParticipantSelector
                 selectedParticipants={newEvent.participants}
