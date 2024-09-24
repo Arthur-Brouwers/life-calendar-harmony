@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import CalendarEvent from './CalendarEvent';
 import ParticipantSelector from './ParticipantSelector';
-import { fetchEvents, addEvent, removeEvent, checkAvailability } from '../utils/api';
+import { fetchEvents, addEvent, removeEvent, checkAvailability, fetchAllEvents } from '../utils/api';
 import { toast } from 'sonner';
 
 const Calendar = () => {
   const [date, setDate] = useState(new Date());
   const [newEvent, setNewEvent] = useState({ title: '', time: '', participants: [] });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [blockedDates, setBlockedDates] = useState([]);
   const queryClient = useQueryClient();
 
   const { data: events = [] } = useQuery({
@@ -20,10 +21,23 @@ const Calendar = () => {
     queryFn: () => fetchEvents(date),
   });
 
+  const { data: allEvents = [] } = useQuery({
+    queryKey: ['allEvents'],
+    queryFn: fetchAllEvents,
+  });
+
+  useEffect(() => {
+    if (allEvents.length > 0) {
+      const blocked = allEvents.map(event => new Date(event.date));
+      setBlockedDates(blocked);
+    }
+  }, [allEvents]);
+
   const addEventMutation = useMutation({
     mutationFn: addEvent,
     onSuccess: () => {
       queryClient.invalidateQueries(['events', date.toISOString().split('T')[0]]);
+      queryClient.invalidateQueries(['allEvents']);
       setNewEvent({ title: '', time: '', participants: [] });
       setIsDialogOpen(false);
       toast.success('Event added successfully');
@@ -37,6 +51,7 @@ const Calendar = () => {
     mutationFn: removeEvent,
     onSuccess: () => {
       queryClient.invalidateQueries(['events', date.toISOString().split('T')[0]]);
+      queryClient.invalidateQueries(['allEvents']);
       toast.success('Event removed successfully');
     },
     onError: () => {
@@ -61,6 +76,12 @@ const Calendar = () => {
     setNewEvent({ ...newEvent, participants });
   };
 
+  const isDateDisabled = (date) => {
+    return blockedDates.some(blockedDate => 
+      blockedDate.toDateString() === date.toDateString()
+    );
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
@@ -69,6 +90,7 @@ const Calendar = () => {
           selected={date}
           onSelect={(newDate) => newDate && setDate(newDate)}
           className="rounded-md border"
+          disabled={isDateDisabled}
         />
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
