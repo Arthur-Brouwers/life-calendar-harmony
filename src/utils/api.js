@@ -21,6 +21,12 @@ export const addEvent = async (newEvent) => {
   return event;
 };
 
+export const removeEvent = async (eventId) => {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  events = events.filter((event) => event.id !== eventId);
+};
+
 export const checkAvailability = async (newEvent) => {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 500));

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import CalendarEvent from './CalendarEvent';
 import ParticipantSelector from './ParticipantSelector';
-import { fetchEvents, addEvent, checkAvailability } from '../utils/api';
+import { fetchEvents, addEvent, removeEvent, checkAvailability } from '../utils/api';
 import { toast } from 'sonner';
 
 const Calendar = () => {
@@ -33,6 +33,17 @@ const Calendar = () => {
     },
   });
 
+  const removeEventMutation = useMutation({
+    mutationFn: removeEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['events', date.toISOString().split('T')[0]]);
+      toast.success('Event removed successfully');
+    },
+    onError: () => {
+      toast.error('Failed to remove event');
+    },
+  });
+
   const handleAddEvent = async () => {
     const isAvailable = await checkAvailability(newEvent);
     if (isAvailable) {
@@ -40,6 +51,10 @@ const Calendar = () => {
     } else {
       toast.error('One or more participants are not available at this time');
     }
+  };
+
+  const handleRemoveEvent = (eventId) => {
+    removeEventMutation.mutate(eventId);
   };
 
   const handleParticipantChange = (participants) => {
@@ -85,7 +100,7 @@ const Calendar = () => {
       </div>
       <div className="space-y-4">
         {events.map((event) => (
-          <CalendarEvent key={event.id} event={event} />
+          <CalendarEvent key={event.id} event={event} onRemove={handleRemoveEvent} />
         ))}
       </div>
     </div>
