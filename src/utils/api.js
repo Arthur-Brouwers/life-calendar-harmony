@@ -10,7 +10,8 @@ let events = [
 export const fetchEvents = async (date) => {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 500));
-  return events.filter((event) => event.date === date.toISOString().split('T')[0]);
+  const dateString = date.toISOString().split('T')[0];
+  return events.filter((event) => event.date === dateString);
 };
 
 export const addEvent = async (newEvent) => {

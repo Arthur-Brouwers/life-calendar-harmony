@@ -4,6 +4,7 @@ import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import CalendarEvent from './CalendarEvent';
 import ParticipantSelector from './ParticipantSelector';
 import { fetchEvents, addEvent, removeEvent, checkAvailability, fetchAllEvents } from '../utils/api';
@@ -109,23 +110,42 @@ const Calendar = () => {
               <DialogTitle>Add New Event</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <Input
-                placeholder="Event title"
-                value={newEvent.title}
-                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-              />
-              <Input
-                type="time"
-                value={newEvent.startTime}
-                onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
-                placeholder="Start Time"
-              />
-              <Input
-                type="time"
-                value={newEvent.endTime}
-                onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
-                placeholder="End Time"
-              />
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Title
+                </Label>
+                <Input
+                  id="title"
+                  className="col-span-3"
+                  placeholder="Event title"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="startTime" className="text-right">
+                  Start Time
+                </Label>
+                <Input
+                  id="startTime"
+                  className="col-span-3"
+                  type="time"
+                  value={newEvent.startTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="endTime" className="text-right">
+                  End Time
+                </Label>
+                <Input
+                  id="endTime"
+                  className="col-span-3"
+                  type="time"
+                  value={newEvent.endTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                />
+              </div>
               <ParticipantSelector
                 selectedParticipants={newEvent.participants}
                 onParticipantChange={handleParticipantChange}
@@ -135,7 +155,7 @@ const Calendar = () => {
           </DialogContent>
         </Dialog>
       </div>
-      <h2 className="text-2xl font-bold mb-4">Planned Activities</h2>
+      <h2 className="text-2xl font-bold mb-4">Planned Activities for {date.toDateString()}</h2>
       <div className="space-y-4">
         {events.map((event) => (
           <CalendarEvent key={event.id} event={event} onRemove={handleRemoveEvent} />
